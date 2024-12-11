@@ -1,14 +1,14 @@
 # АНАЛИЗ ДАННЫХ И ИСКУССТВЕННЫЙ ИНТЕЛЛЕКТ [in GameDev]
-Отчет по лабораторной работе #1 выполнил(а):
-- Иванова Ивана Варкравтовна
-- РИ000024
+Отчет по лабораторной работе #3 выполнил(а):
+- Гайдукевич Евгений Олегович
+- РИ230948
 Отметка о выполнении заданий (заполняется студентом):
 
 | Задание | Выполнение | Баллы |
 | ------ | ------ | ------ |
-| Задание 1 | # | 60 |
-| Задание 2 | # | 20 |
-| Задание 3 | # | 20 |
+| Задание 1 | * | 60 |
+| Задание 2 | * | 20 |
+| Задание 3 | * | 20 |
 
 знак "*" - задание выполнено; знак "#" - задание не выполнено;
 
@@ -35,95 +35,223 @@
 - ✨Magic ✨
 
 ## Цель работы
-Ознакомиться с основными операторами зыка Python на примере реализации линейной регрессии.
+Разработать оптимальный баланс изменения сложности для десяти уровней игры Dragon Picker.
 
 ## Задание 1
-### Пошагово выполнить каждый пункт раздела "ход работы" с описанием и примерами реализации задач
+### Предложите вариант изменения найденных переменных для 10 уровней в игре. Визуализируйте изменение уровня сложности в таблице.
 Ход работы:
-- Произвести подготовку данных для работы с алгоритмом линейной регрессии. 10 видов данных были установлены случайным образом, и данные находились в линейной зависимости. Данные преобразуются в формат массива, чтобы их можно было вычислить напрямую при использовании умножения и сложения.
+- На сложность уровня влияют переменные, которые отвечают за движение дракона: скорость, вероятность поменять направление, дистанция движение влево или вправо. Также на сложность влияет переменная дракона, отвечающая за интервал между бросанием яиц.
+- Я решил использовать линейное нарастание сложности для постепенного увеличения сложности в игре.
+- Пишем скрипт на питоне, который заполнит данными гугл-таблицу, а затем визуализируем данные в таблице.
 
 ```py
 
-In [ ]:
-#Import the required modules, numpy for calculation, and Matplotlib for drawing
-import numpy as np
-import matplotlib.pyplot as plt
-#This code is for jupyter Notebook only
-%matplotlib inline
+import gspread
+import pandas as pd
 
-# define data, and change list to array
-x = [3,21,22,34,54,34,55,67,89,99]
-x = np.array(x)
-y = [2,22,24,65,79,82,55,130,150,199]
-y = np.array(y)
 
-#Show the effect of a scatter plot
-plt.scatter(x,y)
+# Данные для уровней сложности
+data = {
+    "Level": list(range(1, 11)),
+    "Speed": [4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
+    "TimeBetweenEggDrops": [1.5, 1.4, 1.3, 1.2, 1.1, 1, 0.9, 0.8, 0.7, 0.6],
+    "ChanceDirection": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055],
+    "LeftRightDistance": [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+}
+
+# Создаем DataFrame
+df = pd.DataFrame(data)
+
+gc = gspread.service_account(filename='workshop3-444213-54e81ec1546f.json')
+sh = gc.open("WorkShop3")
+
+# Формируем список данных для записи
+values = df.values.tolist()
+
+# Обновляем диапазон данных за один раз
+sh.sheet1.update('A2:E11', values)
 
 ```
 
-- Определите связанные функции. Функция модели: определяет модель линейной регрессии wx+b. Функция потерь: функция потерь среднеквадратичной ошибки. Функция оптимизации: метод градиентного спуска для нахождения частных производных w и b.
+- Ссылка на таблицу: https://docs.google.com/spreadsheets/d/1AWIzQIQIJpiYiGZp7hzbYT2hgNwW152vB1AbJE1aX-o/edit?gid=0#gid=0
+- Также создаем скрипт, который визуализирует данные в питоне
+
+```py
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Данные для уровней сложности
+data = {
+    "Level": list(range(1, 11)),
+    "Speed": [4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
+    "TimeBetweenEggDrops": [1.5, 1.4, 1.3, 1.2, 1.1, 1, 0.9, 0.8, 0.7, 0.6],
+    "ChanceDirection": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055],
+    "LeftRightDistance": [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+}
+
+# Создаем DataFrame
+df = pd.DataFrame(data)
+
+# Визуализация данных
+plt.figure(figsize=(12, 8))
+
+# Скорость
+plt.subplot(2, 2, 1)
+plt.plot(df["Level"], df["Speed"], marker='o', label="Speed", color='blue')
+plt.title("Dragon Speed by Level")
+plt.xlabel("Level")
+plt.ylabel("Speed")
+plt.grid(True)
+
+# Время между сбросами
+plt.subplot(2, 2, 2)
+plt.plot(df["Level"], df["TimeBetweenEggDrops"], marker='o', label="Time Between Egg Drops", color='red')
+plt.title("Time Between Egg Drops by Level")
+plt.xlabel("Level")
+plt.ylabel("Time (seconds)")
+plt.grid(True)
+
+# Шанс смены направления
+plt.subplot(2, 2, 3)
+plt.plot(df["Level"], df["ChanceDirection"], marker='o', label="Chance Direction", color='green')
+plt.title("Chance of Changing Direction by Level")
+plt.xlabel("Level")
+plt.ylabel("Chance")
+plt.grid(True)
+
+# Дистанция движения
+plt.subplot(2, 2, 4)
+plt.plot(df["Level"], df["LeftRightDistance"], marker='o', label="Left Right Distance", color='purple')
+plt.title("Left-Right Distance by Level")
+plt.xlabel("Level")
+plt.ylabel("Distance")
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
+
+```
 
 
 ## Задание 2
-### Должна ли величина loss стремиться к нулю при изменении исходных данных? Ответьте на вопрос, приведите пример выполнения кода, который подтверждает ваш ответ.
+### Создайте 10 сцен на Unity с изменяющимся уровнем сложности.
 
-- Перечисленные в этом туториале действия могут быть выполнены запуском на исполнение скрипт-файла, доступного [в репозитории](https://github.com/Den1sovDm1triy/hfss-scripting/blob/main/ScreatingSphereInAEDT.py).
-- Для запуска скрипт-файла откройте Ansys Electronics Desktop. Перейдите во вкладку [Automation] - [Run Script] - [Выберите файл с именем ScreatingSphereInAEDT.py из репозитория].
+- Создаем 10 уровней и на каждом уровне создаем пустой объект LevelManager, который хранит номер текущего уровня.
 
-```py
+```csharp
 
-import ScriptEnv
-ScriptEnv.Initialize("Ansoft.ElectronicsDesktop")
-oDesktop.RestoreWindow()
-oProject = oDesktop.NewProject()
-oProject.Rename("C:/Users/denisov.dv/Documents/Ansoft/SphereDIffraction.aedt", True)
-oProject.InsertDesign("HFSS", "HFSSDesign1", "HFSS Terminal Network", "")
-oDesign = oProject.SetActiveDesign("HFSSDesign1")
-oEditor = oDesign.SetActiveEditor("3D Modeler")
-oEditor.CreateSphere(
-	[
-		"NAME:SphereParameters",
-		"XCenter:="		, "0mm",
-		"YCenter:="		, "0mm",
-		"ZCenter:="		, "0mm",
-		"Radius:="		, "1.0770329614269mm"
-	], 
-)
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class LevelManager : MonoBehaviour
+{
+    public int currentLevel;
+}
 
 ```
+- Дальше переходим в скрипт дракона. На старте мы определяем LevelManager, берем данные текущего уровня из таблицы и присаиваем их значения дракону.
+
+```csharp
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Networking;
+using Random = UnityEngine.Random;
+using SimpleJSON;
+
+
+public class EnemyDragon : MonoBehaviour
+{
+    public GameObject dragonEggPrefab;
+    public float speed = 1;
+    public float timeBetweenEggDrops = 1f;
+    public float leftRightDistance = 10f;
+    public float chanceDirection = 0.1f;
+    private LevelManager levelManager;
+    
+    void Start()
+    {
+        levelManager = GameObject.Find("LevelManager").GetComponent<LevelManager>();
+        StartCoroutine(GoogleSheets());
+        Invoke("DropEgg", 2f);
+    }
+
+    IEnumerator GoogleSheets()
+    {
+        var url =
+            "https://sheets.googleapis.com/v4/spreadsheets/1AWIzQIQIJpiYiGZp7hzbYT2hgNwW152vB1AbJE1aX-o/values/A2:E11?key=AIzaSyCo6uB0fxKN7kmr77Z5xhPSQ0vs0abXIg4";
+        UnityWebRequest request = UnityWebRequest.Get(url);
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            var jsonData = JSON.Parse(request.downloadHandler.text);
+            var values = jsonData["values"];
+            for (int i = 0; i < values.Count; i++)
+            {
+                var row = values[i];
+                var level = int.Parse(row[0]);
+                if (level == levelManager.currentLevel)
+                {
+                    speed = float.Parse(row[1]);
+                    timeBetweenEggDrops = float.Parse(row[2]);
+                    chanceDirection = float.Parse(row[3]);
+                    leftRightDistance = float.Parse(row[4]);
+                    Debug.Log($"Данные уровня {level}: Speed={speed}, TimeBetweenEggDrops={timeBetweenEggDrops}, ChanceDirection={chanceDirection}, LeftRightDistance={leftRightDistance}");
+                    break;
+                }
+            }
+        }
+        else
+        {
+            Debug.LogError("Ошибка загрузки: " + request.error);
+        }
+    }
+    
+    void DropEgg(){
+        Vector3 myVector = new Vector3(0.0f, 5.0f, 0.0f);
+        GameObject egg = Instantiate<GameObject>(dragonEggPrefab);
+        egg.transform.position = transform.position + myVector;
+        Invoke("DropEgg", timeBetweenEggDrops);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        Vector3 pos = transform.position;
+        pos.x += speed * Time.deltaTime;
+        transform.position = pos;
+
+        if (pos.x < -leftRightDistance){
+            speed = Mathf.Abs(speed);
+        }
+        else if (pos.x > leftRightDistance){
+            speed = -Mathf.Abs(speed);
+        }
+    }
+
+    private void FixedUpdate() {
+        if (Random.value < chanceDirection){
+            speed *= -1;
+        }
+    }
+}
+
+```
+- После запускаем каждый уровень и смотрим, что каждый уровень имеет разный уровень сложности.
 
 ## Задание 3
-### Какова роль параметра Lr? Ответьте на вопрос, приведите пример выполнения кода, который подтверждает ваш ответ. В качестве эксперимента можете изменить значение параметра.
+### Решение в 80+ баллов должно визуализировать данные из google-таблицы, и с помощью Python передавать в проект Unity. В Python данные также должны быть визуализированы.
 
-- Перечисленные в этом туториале действия могут быть выполнены запуском на исполнение скрипт-файла, доступного [в репозитории](https://github.com/Den1sovDm1triy/hfss-scripting/blob/main/ScreatingSphereInAEDT.py).
-- Для запуска скрипт-файла откройте Ansys Electronics Desktop. Перейдите во вкладку [Automation] - [Run Script] - [Выберите файл с именем ScreatingSphereInAEDT.py из репозитория].
-
-```py
-
-import ScriptEnv
-ScriptEnv.Initialize("Ansoft.ElectronicsDesktop")
-oDesktop.RestoreWindow()
-oProject = oDesktop.NewProject()
-oProject.Rename("C:/Users/denisov.dv/Documents/Ansoft/SphereDIffraction.aedt", True)
-oProject.InsertDesign("HFSS", "HFSSDesign1", "HFSS Terminal Network", "")
-oDesign = oProject.SetActiveDesign("HFSSDesign1")
-oEditor = oDesign.SetActiveEditor("3D Modeler")
-oEditor.CreateSphere(
-	[
-		"NAME:SphereParameters",
-		"XCenter:="		, "0mm",
-		"YCenter:="		, "0mm",
-		"ZCenter:="		, "0mm",
-		"Radius:="		, "1.0770329614269mm"
-	], 
-)
-
-```
+- Данные визуализировны и в таблице и в питоне. Также данные передаются в юнити и дальше происходит расчет сложности.
 
 ## Выводы
 
-Абзац умных слов о том, что было сделано и что было узнано.
+- Я смог создать линейное нарастание уровня сложности для 10 уровней игры Dragon Picker. Также я смог визуализировать их в гугл-таблице и в питоне и передал эти данные в юнити для расчета уровня сложности.
 
 | Plugin | README |
 | ------ | ------ |
